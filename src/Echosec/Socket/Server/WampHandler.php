@@ -15,7 +15,7 @@ class WampHandler implements WampServerInterface {
 	*/
 	public function onOpen(ConnectionInterface $connection)
 	{
-		// TODO
+		// WAMP handles the connection open, and we have no additional handling at this time.
 	}
 
 	/**
@@ -27,7 +27,7 @@ class WampHandler implements WampServerInterface {
 	*/
 	public function onClose(ConnectionInterface $connection)
 	{
-		// TODO
+		// No additional handling required at this time.
 	}
 
 	/**
@@ -78,7 +78,8 @@ class WampHandler implements WampServerInterface {
 	*/
 	public function onCall(ConnectionInterface $connection, $id, $topic, array $params)
 	{
-		// TODO
+		// Users not allowed to make RPC calls via WAMP.
+		$connection->callError($id, $topic, 'RPC calls not supported.')->close();
 	}
 
 	/**
@@ -93,6 +94,19 @@ class WampHandler implements WampServerInterface {
 	*/
 	public function onPublish(ConnectionInterface $connection, $topic, $event, array $exclude, array $eligible)
 	{
+		// Users not allowed to publish via pub/sub link.
+		$connection->close(); // TODO Verify that WAMP isn't being automagical and pushing the event anyways.
+	}
+
+	/**
+	Called when an AMQP message is received from the queue.
+
+	@param $envelope A metadata wrapper around the message received.
+	@param $queue The queue on which the message was received.
+	*/
+	public function onReceiveAmqp(AMQPEnvelope $envelope, AMQPQueue $queue = null)
+	{
+		$message = json_decode($envelope->getBody(), true);
 		// TODO
 	}
 }

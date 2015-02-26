@@ -18,6 +18,7 @@ class SocketServer {
 	public function run($port)
 	{
 		$reactLoop = \React\EventLoop\Factory::create();
+		$wampHandler = new WampHandler();
 
 		// Connect to the AMQP broker.
 		$amqpConnection = new AMQPConnection();
@@ -38,7 +39,7 @@ class SocketServer {
 
 		// Set up the React AMQP consumer.
 		$consumer = new AMQPConsumer($queue, $reactLoop, 0.1, 100); // Poll every 0.1 seconds, retrieve up to 100 queue entries.
-		$consumer->on('consume', [new AmqpHandler(), 'receiveAmqp']);
+		$consumer->on('consume', [$wampHandler, 'onReceiveAmqp']);
 
 		// Sets up a web socket listener on the specified port.
 		$webSocket = new \React\Socket\Server($reactLoop);
@@ -49,7 +50,7 @@ class SocketServer {
 			new HttpServer(
 				new WsServer(
 					new WampServer(
-						new WampHandler()
+						$wampHandler
 					)
 				)
 			), $webSocket
