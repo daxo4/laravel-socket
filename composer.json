@@ -1,0 +1,24 @@
+{
+    "name": "echosec/socket-laravel",
+    "description": "A web socket library for Laravel 4 using RabbitMQ",
+    "keywords": ["websocket", "ratchet", "rabbit", "rabbitMQ", "laravel"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nicholas Turner",
+            "email": "nick@echosec.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "4.2.*",
+        "cboden/ratchet": "0.3.*",
+        "jcook/react-amqp": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Echosec\\Socket": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
