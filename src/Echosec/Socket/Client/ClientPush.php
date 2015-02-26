@@ -1,5 +1,8 @@
 <?php namespace Echosec\Socket\Client;
 
+/**
+Allows a Laravel RESTful web server to push messages to the web socket server.
+*/
 class ClientPush {
 	/**
 	Pushes a message via web socket.
@@ -13,11 +16,17 @@ class ClientPush {
 		// TODO
 	}
 
+	/**
+	Signal the web socket server that a user has logged on.
+	*/
 	public function login()
 	{
 		$this->sync('add');
 	}	
 
+	/**
+	Signal the web socket server that a user is logging out.
+	*/
 	public function logout()
 	{
 		$this->sync('remove');
