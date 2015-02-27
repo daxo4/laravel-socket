@@ -22,9 +22,9 @@ class SocketServer {
 		$wampHandler = new WampHandler();
 
 		// Connect to the AMQP broker.
-		$amqpConnection = new \AMQPConnection(
+		$amqpConnection = new AMQPConnection(
 			\Config::get('socket::amqp.host'),
-			\Config::get('socket::amqp.post'),
+			\Config::get('socket::amqp.port'),
 			\Config::get('socket::amqp.username'),
 			\Config::get('socket::amqp.password'),
 			\Config::get('socket::amqp.vhost')
