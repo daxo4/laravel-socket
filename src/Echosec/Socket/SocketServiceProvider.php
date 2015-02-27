@@ -45,15 +45,4 @@ class SocketServiceProvider extends ServiceProvider {
 			return new Commands\SocketServeCommand();
 		});
 	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array();
-	}	
-
 }
