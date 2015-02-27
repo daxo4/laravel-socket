@@ -40,7 +40,7 @@ class SocketServiceProvider extends ServiceProvider {
 	public function register()
 	{
 		// IoC Command
-		$this->app['socket:serve'] = $this->app->share(function($app)
+		$this->app->bind('socket:serve', function($app)
 		{
 			return new Commands\SocketServeCommand();
 		});
