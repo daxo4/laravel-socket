@@ -10,4 +10,6 @@ return array(
 		'vhost'		=> '/'
 	),
 
+	'serverBindAddress' => '0.0.0.0',
+
 );

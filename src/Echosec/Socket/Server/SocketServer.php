@@ -43,7 +43,7 @@ class SocketServer {
 
 		// Sets up a web socket listener on the specified port.
 		$webSocket = new \React\Socket\Server($reactLoop);
-		$webSocket->listen($port, \Config::get('larapush::socketConnect'));
+		$webSocket->listen($port, \Config::get('socket::serverBindAddress'));
 
 		// Construct the web server.
 		$webServer = new IoServer(
