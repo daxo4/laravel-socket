@@ -4,7 +4,7 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
-class LarapushServeCommand extends Command {
+class SocketServeCommand extends Command {
 
 	/**
 	 * The console command name.

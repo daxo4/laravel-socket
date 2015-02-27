@@ -26,7 +26,7 @@ class SocketServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{
-		$this->package('echosec\socket');
+		$this->package('echosec/socket');
 
 		// Register command on boot
 		$this->commands('socket:serve');
