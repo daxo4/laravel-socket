@@ -8,6 +8,13 @@ Handles client interactions with the server via the WAMP interface.
 */
 class WampHandler implements WampServerInterface {
 	/**
+	A lookup of topics that have been subscribed to.
+	Key: The topic 'id' (which is its name as a string)
+	Value: The Topic with that id.
+	*/
+	protected $subscribedTopics = array();
+
+	/**
 	Implementation of ComponentInterface::onOpen().
 	Executed when a client opens a connection.
 
@@ -52,7 +59,8 @@ class WampHandler implements WampServerInterface {
 	*/
 	public function onSubscribe(ConnectionInterface $connection, $topic)
 	{
-		// TODO
+		// Add this topic to the list of subscribed topics.
+		$this->subscribedTopics[$topic->getId()] = $topic;
 	}
 
 	/**
@@ -107,6 +115,15 @@ class WampHandler implements WampServerInterface {
 	public function onReceiveAmqp(AMQPEnvelope $envelope, AMQPQueue $queue = null)
 	{
 		$message = json_decode($envelope->getBody(), true);
-		// TODO
+		$topicId = $message['topic'];
+		$data = $message['data'];
+
+		if (! array_key_exists($topicId, $this->subscribedTopics)) {
+			return; // If topic does not exist, skip this publication.
+		}
+
+		$topic = $this->subscribedTopics[$topicId];
+
+		$topic->broadcast($data); // TODO Handle user restrictions.
 	}
 }
