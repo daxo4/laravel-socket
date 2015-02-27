@@ -7,7 +7,7 @@ return array(
 		'port'		=> 5672,
 		'username'	=> 'guest',
 		'password'	=> 'guest',
-		'vhost'		=> ''
+		'vhost'		=> '/'
 	),
 
 );

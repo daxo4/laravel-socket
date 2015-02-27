@@ -21,13 +21,13 @@ class SocketServer {
 		$wampHandler = new WampHandler();
 
 		// Connect to the AMQP broker.
-		$amqpConnection = new AMQPConnection();
-		$amqpConnection->setHost(\Config::get('socket-laravel::amqp.host'));
-		$amqpConnection->setPort(\Config::get('socket-laravel::amqp.post'));
-		$amqpConnection->setVhost(\Config::get('socket-laravel::amqp.vhost'));
-		$amqpConnection->setLogin(\Config::get('socket-laravel::amqp.username'));
-		$amqpConnection->setPassword(\Config::get('socket-laravel::amqp.password'));
-		$amqpConnection->connect();
+		$amqpConnection = new \AMQPConnection(
+			\Config::get('socket::amqp.host'),
+			\Config::get('socket::amqp.post'),
+			\Config::get('socket::amqp.username'),
+			\Config::get('socket::amqp.password'),
+			\Config::get('socket::amqp.vhost')
+		);
 
 		// Create an AMQP channel.
 		$amqpChannel = new AMQPChannel($amqpConnection);

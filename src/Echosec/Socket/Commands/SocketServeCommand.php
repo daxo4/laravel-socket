@@ -37,7 +37,7 @@ class SocketServeCommand extends Command {
 	 */
 	public function fire()
 	{
-		$server = new Echosec\Socket\Server\SocketServer();
+		$server = new \Echosec\Socket\Server\SocketServer();
 
 		$this->info('Web socket server is now listening on port ' . $this->option('port'));
 
