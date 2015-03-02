@@ -23,7 +23,7 @@ class ClientPush {
                         \Config::get('socket::amqp.password'),
                         \Config::get('socket::amqp.vhost')
                 );
-                $this->amqpChannel = $amqpConnection->channel();
+                $this->amqpChannel = $this->amqpConnection->channel();
 
                 $this->amqpQueue = 'echosec.ws.queue';
                 $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, true);
