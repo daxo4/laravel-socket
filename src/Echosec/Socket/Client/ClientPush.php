@@ -1,5 +1,8 @@
 <?php namespace Echosec\Socket\Client;
 
+use PhpAmqpLib\Connection\AMQPConnection;
+use PhpAmqpLib\Message\AMQPMessage;
+
 /**
 Allows a Laravel RESTful web server to push messages to the web socket server.
 */
