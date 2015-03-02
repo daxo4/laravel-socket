@@ -5,15 +5,48 @@ Allows a Laravel RESTful web server to push messages to the web socket server.
 */
 class ClientPush {
 	/**
+	Storage for AMQP components.
+	*/
+	protected $amqpConnection;
+	protected $amqpChannel;
+	protected $amqpQueue;
+
+	public function __construct()
+	{
+		$this->amqpConnection = new AMQPConnection(
+                        \Config::get('socket::amqp.host'),
+                        \Config::get('socket::amqp.port'),
+                        \Config::get('socket::amqp.username'),
+                        \Config::get('socket::amqp.password'),
+                        \Config::get('socket::amqp.vhost')
+                );
+                $amqpChannel = $amqpConnection->channel();
+
+                $amqpQueue = 'echosec.ws.queue';
+                $amqpChannel->queue_declare($amqpQueue, false, true, false, true);
+
+                );
+                $this->amqpChannel = $this->amqpConnection->channel();
+
+                $this->amqpQueue = 'echosec.ws.queue';
+                $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, true);
+	}
+
+	/**
 	Pushes a message via web socket.
 
-	@param string $message The message to send.
-	@param string $channel The channel on which the message will be sent.
+	@param string $data The data packet to send.
+	@param string $topic The topic to which the message will be sent.
 	@param array $users An array of users to send the message to. If empty, will send to all users.
 	*/
-	public function send($message, $channel = 'channel', array $users = array())
+	public function send(string $data, string $topic, array $users = array())
 	{
-		// TODO
+		$payload = json_encode(array(
+			'data'=>$data,
+			'topic'=>$topic
+		));
+		$message = new AMQPMessage($payload, array('delivery_mode' => 2));
+		$this->amqpChannel->basic_publish($message, '', $this->amqpQueue);
 	}
 
 	/**
