@@ -25,7 +25,6 @@ class ClientPush {
                 $amqpQueue = 'echosec.ws.queue';
                 $amqpChannel->queue_declare($amqpQueue, false, true, false, true);
 
-                );
                 $this->amqpChannel = $this->amqpConnection->channel();
 
                 $this->amqpQueue = 'echosec.ws.queue';
