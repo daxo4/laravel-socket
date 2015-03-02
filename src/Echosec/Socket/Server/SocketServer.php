@@ -38,7 +38,7 @@ class SocketServer {
 		$amqpChannel->queue_declare($amqpQueue, false, true, false, true);
 
 		// Set up the React AMQP consumer.
-		$consumer = new AMQPConsumer($amqpChannel, $amqpQueue, $reactLoop, 0.1, 100); // Poll every 0.1 seconds, retrieve up to 100 queue entries.
+		$consumer = new AMQPConsumer($amqpConnection, $amqpChannel, $amqpQueue, $reactLoop, 0.1, 100); // Poll every 0.1 seconds, retrieve up to 100 queue entries.
 		$consumer->on('consume', [$wampHandler, 'onReceiveAmqp']);
 
 		// Sets up a web socket listener on the specified port.
