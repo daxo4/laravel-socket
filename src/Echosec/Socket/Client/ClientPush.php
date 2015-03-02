@@ -41,7 +41,7 @@ class ClientPush {
 	@param string $topic The topic to which the message will be sent.
 	@param array $users An array of users to send the message to. If empty, will send to all users.
 	*/
-	public function send(string $data, string $topic, array $users = array())
+	public function send($data, $topic, array $users = array())
 	{
 		$payload = json_encode(array(
 			'data'=>$data,
@@ -70,8 +70,10 @@ class ClientPush {
 	/**
 	Pushes a request to synchronize a user's session and user IDs on the server.
 	If the user authenticates via a RESTful endpoint on the LAMP server, we use this command to pass that authenticated session to the web socket server.
+
+	@param string $type The type of sync action, one of 'add' or 'remove'.
 	*/
-	private function sync(string $type) 
+	private function sync($type) 
 	{
 		$sessionId = ''; // TODO
 		$userId = ''; // TODO
