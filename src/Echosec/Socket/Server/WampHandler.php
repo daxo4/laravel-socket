@@ -1,5 +1,7 @@
 <?php namespace Echosec\Socket\Server;
 
+use PhpAmqpLib\Message\AMQPMessage as AMQPMessage;
+
 use Ratchet\Wamp\WampServerInterface;
 use Ratchet\ConnectionInterface;
 
@@ -110,11 +112,13 @@ class WampHandler implements WampServerInterface {
 	Called when an AMQP message is received from the queue.
 
 	@param $envelope A metadata wrapper around the message received.
-	@param $queue The queue on which the message was received.
 	*/
-	public function onReceiveAmqp(AMQPEnvelope $envelope, AMQPQueue $queue = null)
+	public function onReceiveAmqp(AMQPMessage $envelope)
 	{
-		$message = json_decode($envelope->getBody(), true);
+		$message = json_decode($envelope->body, true);
+		if (! array_key_exists('topic', $message) || ! array_key_exists('data', $message)) {
+			return; // Ignore invalid messages.
+		}
 		$topicId = $message['topic'];
 		$data = $message['data'];
 
