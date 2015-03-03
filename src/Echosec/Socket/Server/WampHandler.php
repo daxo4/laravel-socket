@@ -17,6 +17,11 @@ class WampHandler implements WampServerInterface {
 	protected $subscribedTopics = array();
 
 	/**
+	A lookup of Ratchet-assigned session IDs and Laravel session IDs.
+	*/
+	protected $userSessionMap = array();
+
+	/**
 	Implementation of ComponentInterface::onOpen().
 	Executed when a client opens a connection.
 
@@ -105,7 +110,7 @@ class WampHandler implements WampServerInterface {
 	public function onPublish(ConnectionInterface $connection, $topic, $event, array $exclude, array $eligible)
 	{
 		// Users not allowed to publish via pub/sub link.
-		$connection->close(); // TODO Verify that WAMP isn't being automagical and pushing the event anyways.
+		$connection->close(); // Disconnect the misbehaving client.
 	}
 
 	/**
