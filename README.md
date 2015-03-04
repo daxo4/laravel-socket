@@ -28,7 +28,10 @@ Add the following lines to your project's composer.json:
 }
 ```
 
+# Using Laravel-socket
 #### Run the server
+As a web socket service, Laravel-socket must be run alongside a conventional REST server.
+
 You can run the server from the command line via Artisan:
 ```
 php artisan socket:serve [--port=8080]
@@ -38,11 +41,64 @@ TODO Instructions on how to run SocketServer.php directly as a React server.
 
 TODO Instructions and testing on running multiple SocketServer instances behind a load balancer.
 
+#### Browser connection via Javascript
+In order to receive messages, you must open a web socket connection, then subscribe to one or more topics.
+
+We recommend the use of [Autobahn](http://autobahn.ws/). Javascript sample taken from [Ratchet's WAMP tutorial](http://socketo.me/docs/push), which is good reading in general for the structure of web socket push notifications.
+```javascript
+console.log('Initializing web socket');
+var conn = new ab.Session('ws://127.0.0.1:8080',
+	function() {
+		console.log('Web socket session id: ' + conn.sessionid());
+		conn.subscribe('post.kittens', function(topic, data) {
+			// This is where you would handle the message.
+			console.log('New article published to category "' + topic + '" : ' + data);
+		});
+	},
+	function() {
+		console.warn('WebSocket connection closed');
+	},
+	{'skipSubprotocolCheck': true}
+);
+console.log('Initialized web socket');
+```
+
+#### Send messages
+There are two ways to send messages to Laravel-socket. You can use the built-in 'ClientPush' facade from your REST controllers, or you can create RabbitMQ messages manually from any process with a RabbitMQ connection.
+
+##### Using ClientPush
+You may use the helper class ClientPush, either via Laravel facades or directly through the PHP class, to send messages to the web socket.
+
+1. Add the ClientPush facade to Laravel.
+```php
+TODO
+```
+2. Call the ClientPush facade, with the topic you want to push to. 
+```php
+$topic = 'post.kittens';
+$data = 'Kittens are awesome!';
+ClientPush::send($topic, $data);
+```
+
+##### Using RabbitMQ
+If you want to send push notifications from non-PHP processes, you can format your own RabbitMQ messages. The body of the message should be a JSON-encoded object of the following format:
+```json
+{
+	"topic": "post.kittens",
+	"data": "Kittens are awesome!"
+}
+```
+Optionally, you may add an "auth" field (see the section on permission checks below).
+
+Your message should be sent to the queue specified in Laravel-socket's configuration file, which defaults to "echosec.ws.queue".
+
+You probably shouldn't be using non-PHP processes to send account synchronization messages. If you really, really need to, the message format and queue can be found in the ClientPush source code.
+
 #### Optional: Configure permission checks
 Laravel-socket allows for a customized permission system to be assigned to messages. This allows you to choose what clients will receive each message.
 
 1. Add a REST endpoint that calls `ClientPush::login()`. This function takes two parameters. The first is the web socket session id, which should be passed from the client after they establish a web socket connection. The second, the user id, is a string that uniquely identifies a user in your system. This call will associate this user id with the web socket session.
-```
+```php
 class WebSocketController extends BaseController {
 	public function syncWebSocket() {
 		$sessionId = Input::get('session_id');
@@ -52,8 +108,8 @@ class WebSocketController extends BaseController {
 	}
 }
 ```
-2. Create a permission handler by extending `Echosec\Socket\Server\SocketPermissionInterface`. This interface has a single function, `getUserIds($topic, $message, $auth)`, which returns an array of user ids that are permitted to view the specified message.
-```
+2. Create a permission handler by extending `Echosec\Socket\Server\SocketPermissionInterface`. This interface has a single function, `getUserIds($topic, $message, $auth)`, which returns an array of user ids that are permitted to view the specified message. The following is a trivial implementation, to show the expected return format.
+```php
 <?php
 
 use Echosec\Socket\Server\SocketServerInterface;
@@ -68,15 +124,15 @@ class PermissionHandler implements SocketServerInterface
 }
 
 ```
-	a. These must be the same user ids that you provided to `ClientPush::login()`.
+  * These must be the same user ids that you provided to `ClientPush::login()`.
 3. Bind this permission handler in your IOC container, so Laravel-socket can access it.
 ```
 App::bind('SocketPermissionInterface', 'PermissionHandler');
 ```
-	b. TODO Implement an alternative system that doesn't use Laravel's IOC functionality, so the permission system can be bound in non-Laravel environments.
+  * TODO Implement an alternative system that doesn't use Laravel's IOC functionality, so the permission system can be bound in non-Laravel environments.
 4. When sending messages via `ClientPush::send()`, provide a non-null string for the third parameter, `$auth`.
-	a. This `$auth` string will be provided directly to the permission handler's `getUserIds()`, and otherwise serves no purpose. You may use this string to store special instructions for your permission handler, if you wish.
-	b. If `$auth` is null or omitted when sending a message, then permission checks will be **skipped** for this message.
+  * This `$auth` string will be provided directly to the permission handler's `getUserIds()`, and otherwise serves no purpose. You may use this string to store special instructions for your permission handler, if you wish.
+  * If `$auth` is null or omitted when sending a message, then permission checks will be **skipped** for this message.
 
 When a message with a non-null `$auth` field is received by the server, a call will be made to `getUserIds()`, which should return an array of user ids. The message will only be broadcast to web socket sessions associated with a user in this array.
 
@@ -86,10 +142,19 @@ If you need Laravel session information, look into Laravel's `Illuminate\Session
 
 # Troubleshooting
 #### ReflectionException - class SocketPermissionInterface does not exist.
-This means you sent a message with an 'auth' field, but have not configured a class to handle permission checks.
+This means you sent a message with an 'auth' field, but have not configured a class to handle permission checks. Make sure the class exists, and that you've configured the IoC binding to expose it to Laravel-socket.
+
+# FAQ
+#### Why [RabbitMQ](https://www.rabbitmq.com/)? Why not [ZeroMQ](http://zeromq.org/), like other React-based web sockets?
+Short answer: because our backend already uses RabbitMQ for inter-process communication, and we didn't want two queueing systems.
+
+Long answer: we wanted a single messaging system to support our entire platform. One of the beautiful things about using a queueing system for inter-process communication is the ability for non-PHP applications to enter the network. The rest of our tech uses RabbitMQ for message passing, and so using RabbitMQ for push notifications kept our dependencies low.
+
+ZeroMQ has some advantages over RabbitMQ [see here](http://code.hootsuite.com/why-we-love-and-use-zeromq-at-hootsuite/). Ultimately, if you're willing to invest the time and resources into it, ZeroMQ will ultimately be a more powerful and efficient system. That said, RabbitMQ is more useful 'out of the box'. 
+
+Ultimately, the system is not completely married to RabbitMQ as a message passing system. We use a [custom variant of the ReactAMQP library](https://github.com/echosec/ReactAMQP) (using php-amqplib instead of the PECL extensions), and it would be reasonably easy to substitute in [React ZMQ](https://github.com/reactphp/zmq) instead.
 
 # License
-
 The MIT License (MIT)
 
 Copyright (c) 2015 echosec
