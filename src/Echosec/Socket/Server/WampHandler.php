@@ -140,7 +140,23 @@ class WampHandler implements WampServerInterface {
 		}
 		$topic = $this->subscribedTopics[$topicId];
 
-		$topic->broadcast($data); // TODO Handle user restrictions.
+		if (array_key_exists('auth', $message)) {
+			// Broadcast only to users that pass permission checks.
+			$permissionHandler = \App::make('SocketPermissionInterface');
+			$userWhitelist = $permissionHandler->getUserIds($topicId, $message, $message['auth']);
+			$sessionWhitelist = array();
+			foreach ($this->userSessionMap as $sessionId => $userId) {
+				if (in_array($userId, $userWhitelist)) $sessionWhitelist[] = $sessionId;
+			}
+			
+
+			if (count($sessionWhitelist) > 0) { // broadcast() treats empty array as a lack of restrictions, not a lack of acceptable users.
+				$topic->broadcast($data, array(), $sessionWhitelist);
+			}
+		} else {
+			// No authentication restrictions, broadcast to all users.
+			$topic->broadcast($data);
+		}
 	}
 
 	/**

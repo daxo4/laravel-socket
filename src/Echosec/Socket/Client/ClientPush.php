@@ -38,15 +38,18 @@ class ClientPush {
 
 	@param string $data The data packet to send.
 	@param string $topic The topic to which the message will be sent.
+	@param string $auth The authentication string to attach, or null if no authentication details are required.
 	@param array $users An array of users to send the message to. If empty, will send to all users.
 	*/
-	public function send($data, $topic, array $users = array())
+	public function send($data, $topic, $auth = null, array $users = array())
 	{
-		$payload = json_encode(array(
+		$payload = array(
 			'data'=>$data,
 			'topic'=>$topic
-		));
-		$message = new AMQPMessage($payload, array('delivery_mode' => 2));
+		);
+		if (! is_null($auth)) $payload['auth'] = $auth;
+		// TODO Handle specific user targets, or remove this support.
+		$message = new AMQPMessage(json_encode($payload), array('delivery_mode' => 2));
 		$this->amqpChannel->basic_publish($message, '', $this->amqpQueue);
 	}
 
