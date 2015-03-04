@@ -17,7 +17,15 @@ class WampHandler implements WampServerInterface {
 	protected $subscribedTopics = array();
 
 	/**
-	A lookup of Ratchet-assigned session IDs and Laravel session IDs.
+	A lookup of Ratchet-assigned session IDs and user IDs.
+	The user IDs are used for internal authentication checks.
+
+	This mapping is one-to-many. A session can be associated with zero or one users,
+	but a user may have zero or many sessions. For instance, if a user opens multiple
+	browser windows, each with a separate web socket connection.
+
+	Key: The web socket session id.
+	Value: The user id attached to that session, or null if the session does not have an associated user id.
 	*/
 	protected $userSessionMap = array();
 
@@ -29,7 +37,7 @@ class WampHandler implements WampServerInterface {
 	*/
 	public function onOpen(ConnectionInterface $connection)
 	{
-		// WAMP handles the connection open, and we have no additional handling at this time.
+		$this->userSessionMap[$connection->WAMP->sessionId] = null;
 	}
 
 	/**
@@ -41,7 +49,7 @@ class WampHandler implements WampServerInterface {
 	*/
 	public function onClose(ConnectionInterface $connection)
 	{
-		// No additional handling required at this time.
+		unset($this->userSessionMap[$connection->WAMP->sessionId]);
 	}
 
 	/**
@@ -114,7 +122,7 @@ class WampHandler implements WampServerInterface {
 	}
 
 	/**
-	Called when an AMQP message is received from the queue.
+	Called when an AMQP data message is received from the queue.
 
 	@param $envelope A metadata wrapper around the message received.
 	*/
@@ -128,11 +136,33 @@ class WampHandler implements WampServerInterface {
 		$data = $message['data'];
 
 		if (! array_key_exists($topicId, $this->subscribedTopics)) {
-			return; // If topic does not exist, skip this publication.
+			return; // If topic does not exist, ignore this publication.
 		}
-
 		$topic = $this->subscribedTopics[$topicId];
 
 		$topic->broadcast($data); // TODO Handle user restrictions.
+	}
+
+	/**
+	Called when an AMQP synchronization message is received from the queue.
+
+	@param $envelope A metadata wrapper around the message received.
+	*/
+	public function onReceiveSync(AMQPMessage $envelope)
+	{
+		$message = json_decode($envelope->body, true);
+		if (! array_key_exists('sessionId', $message) || ! array_key_exists('userId', $message)) {
+			return; // Ignore invalid messages.
+		}
+		$sessionId = $message['sessionId'];
+		$userId = $message['userId'];
+
+		if ($message['type'] == 'add') {
+			if (array_key_exists($sessionId, $this->userSessionMap)) {
+				$this->userSessionMap[$sessionId] = $userId;
+			}
+		} else if ($message['type'] == 'remove') {
+			unset($this->userSessionMap[$sessionId]);
+		}
 	}
 }

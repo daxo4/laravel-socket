@@ -33,13 +33,19 @@ class SocketServer {
 		// Create an AMQP channel.
 		$amqpChannel = $amqpConnection->channel();
 
-		// Declare an AMQP queue.
-		$amqpQueue = 'echosec.ws.queue';
+		// Set up the core React AMQP consumer, with a dedicated queue.
+		$amqpQueue = 'echosec.ws.queue'; // TODO Move queue name to config file.
 		$amqpChannel->queue_declare($amqpQueue, false, true, false, true);
 
-		// Set up the React AMQP consumer.
 		$consumer = new AMQPConsumer($amqpConnection, $amqpChannel, $amqpQueue, $reactLoop, 0.1, 100); // Poll every 0.1 seconds, retrieve up to 100 queue entries.
 		$consumer->on('consume', [$wampHandler, 'onReceiveAmqp']);
+
+		// Set up the session synchronization AMQP consumer, with its own dedicated queue.
+		$syncQueue = 'echosec.ws.sync'; // TODO Move queue name to config file.
+		$amqpChannel->queue_declare($syncQueue, false, true, false, true);
+
+		$consumer = new AMQPConsumer($amqpConnection, $amqpChannel, $syncQueue, $reactLoop, 0.1, 100); // Poll every 0.1 seconds, retrieve up to 100 queue entries.
+		$consumer->on('consume', [$wampHandler, 'onReceiveSync']);
 
 		// Sets up a web socket listener on the specified port.
 		$webSocket = new \React\Socket\Server($reactLoop);

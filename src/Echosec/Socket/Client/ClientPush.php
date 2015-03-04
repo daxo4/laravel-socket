@@ -13,6 +13,7 @@ class ClientPush {
 	protected $amqpConnection;
 	protected $amqpChannel;
 	protected $amqpQueue;
+	protected $syncQueue;
 
 	public function __construct()
 	{
@@ -25,12 +26,10 @@ class ClientPush {
                 );
                 $this->amqpChannel = $this->amqpConnection->channel();
 
-                $this->amqpQueue = 'echosec.ws.queue';
+                $this->amqpQueue = 'echosec.ws.queue'; // TODO Move to config.
                 $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, true);
 
-                $this->amqpChannel = $this->amqpConnection->channel();
-
-                $this->amqpQueue = 'echosec.ws.queue';
+                $this->syncQueue = 'echosec.ws.sync'; // TODO Move to config.
                 $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, true);
 	}
 
@@ -53,10 +52,13 @@ class ClientPush {
 
 	/**
 	Signal the web socket server that a user has logged on.
+
+	@param string $wsSession The web socket session ID to sync.
+	@param string $userId The user ID to sync.
 	*/
-	public function login()
+	public function login($wsSession, $userId)
 	{
-		$this->sync('add');
+		$this->sync('add', $wsSession, $userId);
 	}	
 
 	/**
@@ -72,19 +74,17 @@ class ClientPush {
 	If the user authenticates via a RESTful endpoint on the LAMP server, we use this command to pass that authenticated session to the web socket server.
 
 	@param string $type The type of sync action, one of 'add' or 'remove'.
+	@param string $wsSession The web socket session ID to sync with the currently authenticated user.
 	*/
-	private function sync($type) 
+	private function sync($type, $wsSession, $userId)
 	{
-		$sessionId = ''; // TODO
-		$userId = ''; // TODO
-
-		$messageArray = array(
+		$payload = json_encode(array(
 			'sync'=>true,
 			'type'=>$type,
-			'sessionId'=>$sessionId,
+			'sessionId'=>$wsSession,
 			'userId'=>$userId
-		);
-		$message = json_encode($messageArray);
-		$this->send($message, 'echosec.sync');
+		));
+		$message = new AMQPMessage($payload, array('delivery_mode' => 2));
+		$this->amqpChannel->basic_publish($message, '', $this->syncQueue);
 	}
 }
