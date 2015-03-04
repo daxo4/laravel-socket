@@ -36,16 +36,16 @@ class ClientPush {
 	/**
 	Pushes a message via web socket.
 
-	@param string $data The data packet to send.
 	@param string $topic The topic to which the message will be sent.
+	@param string $data The data packet to send.
 	@param string $auth The authentication string to attach, or null if no authentication details are required.
 	@param array $users An array of users to send the message to. If empty, will send to all users.
 	*/
-	public function send($data, $topic, $auth = null, array $users = array())
+	public function send($topic, $data, $auth = null, array $users = array())
 	{
 		$payload = array(
-			'data'=>$data,
 			'topic'=>$topic
+			'data'=>$data,
 		);
 		if (! is_null($auth)) $payload['auth'] = $auth;
 		// TODO Handle specific user targets, or remove this support.
