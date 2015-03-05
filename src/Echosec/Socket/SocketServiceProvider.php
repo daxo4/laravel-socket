@@ -44,5 +44,11 @@ class SocketServiceProvider extends ServiceProvider {
 		{
 			return new Commands\SocketServeCommand();
 		});
+
+		// Facades
+		$this->app->bind('client_push', function($app)
+		{
+			return new Client\ClientPush;
+		});
 	}
 }

@@ -28,6 +28,21 @@ Add the following lines to your project's composer.json:
 }
 ```
 
+#### Configuration files
+Register the Laravel-socket service provider in your project's `app/config/app.php`, under `providers`.
+```php
+'providers' => array(
+	...
+	'Echosec\Socket\SocketServiceProvider',
+),
+```
+If you want to generate push notifications from the server, additionally add the ClientPush facade to your `aliases` array in the same file:
+```php
+'aliases' => array(
+	...
+	'Echosec\Socket\Facades\ClientPush',
+),
+```
 # Using Laravel-socket
 #### Run the server
 As a web socket service, Laravel-socket must be run alongside a conventional REST server.
@@ -69,11 +84,7 @@ There are two ways to send messages to Laravel-socket. You can use the built-in 
 ##### Using ClientPush
 You may use the helper class ClientPush, either via Laravel facades or directly through the PHP class, to send messages to the web socket.
 
-1. Add the ClientPush facade to Laravel.
-```php
-TODO
-```
-2. Call the ClientPush facade, with the topic you want to push to. 
+If you added the ClientPush facade to your `aliases` (see above), then you can just call the class directly.
 ```php
 $topic = 'post.kittens';
 $data = 'Kittens are awesome!';

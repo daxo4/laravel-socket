@@ -44,8 +44,8 @@ class ClientPush {
 	public function send($topic, $data, $auth = null, array $users = array())
 	{
 		$payload = array(
-			'topic'=>$topic
-			'data'=>$data,
+			'topic'=>$topic,
+			'data'=>$data
 		);
 		if (! is_null($auth)) $payload['auth'] = $auth;
 		// TODO Handle specific user targets, or remove this support.
