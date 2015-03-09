@@ -20,7 +20,7 @@
             "type": "vcs",
             "url": "https://github.com/echosec/ReactAMQP"
         }
-    ]
+    ],
     "autoload": {
         "psr-0": {
             "Echosec\\Socket": "src/"
