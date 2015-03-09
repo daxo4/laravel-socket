@@ -1,5 +1,5 @@
 {
-    "name": "echosec/socket-laravel",
+    "name": "echosec/laravel-socket",
     "description": "A web socket library for Laravel 4 using RabbitMQ",
     "keywords": ["websocket", "ratchet", "rabbit", "rabbitMQ", "laravel"],
     "license": "MIT",
