@@ -153,7 +153,7 @@ If you need Laravel session information, look into Laravel's `Illuminate\Session
 
 # Troubleshooting
 #### ReflectionException - class SocketPermissionInterface does not exist.
-This means you sent a message with an 'auth' field, but have not configured a class to handle permission checks. Make sure the class exists, and that you've configured the IoC binding to expose it to Laravel-socket.
+This means you sent a message with an 'auth' field, or attempted to send an account synchronization message, but have not configured a class to handle permission checks. Make sure the class exists, and that you've configured the IoC binding to expose it to Laravel-socket. If you are not using permission checks in your system, then do not send syncronization or authentication messages.
 
 # FAQ
 #### Why [RabbitMQ](https://www.rabbitmq.com/)? Why not [ZeroMQ](http://zeromq.org/), like other React-based web sockets?
