@@ -40,7 +40,7 @@ If you want to generate push notifications from the server, additionally add the
 ```php
 'aliases' => array(
 	...
-	'Echosec\Socket\Facades\ClientPush',
+	'ClientPush' => 'Echosec\Socket\Facades\ClientPush',
 ),
 ```
 # Using Laravel-socket
