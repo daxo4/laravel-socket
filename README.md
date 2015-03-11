@@ -123,9 +123,9 @@ class WebSocketController extends BaseController {
 ```php
 <?php
 
-use Echosec\Socket\Server\SocketServerInterface;
+use Echosec\Socket\Server\SocketPermissionInterface;
 
-class PermissionHandler implements SocketServerInterface
+class PermissionHandler implements SocketPermissionInterface
 {
         public function getUserIds($topic, $data, $auth) 
         {
