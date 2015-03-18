@@ -26,10 +26,10 @@ class ClientPush {
                 );
                 $this->amqpChannel = $this->amqpConnection->channel();
 
-                $this->amqpQueue = 'echosec.ws.queue'; // TODO Move to config.
+                $this->amqpQueue = \Config::get('socket::dataQueue');
                 $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, false);
 
-                $this->syncQueue = 'echosec.ws.sync'; // TODO Move to config.
+                $this->syncQueue = \Config::get('socket::syncQueue');
                 $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, false);
 	}
 
