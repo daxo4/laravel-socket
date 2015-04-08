@@ -27,10 +27,10 @@ class ClientPush {
                 $this->amqpChannel = $this->amqpConnection->channel();
 
                 $this->amqpQueue = \Config::get('socket::dataQueue');
-                $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, false);
+                $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, true);
 
                 $this->syncQueue = \Config::get('socket::syncQueue');
-                $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, false);
+                $this->amqpChannel->queue_declare($this->amqpQueue, false, true, false, true);
 	}
 
 	/**
