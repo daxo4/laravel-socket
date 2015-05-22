@@ -37,14 +37,14 @@ class SocketServer {
 		$amqpQueue = \Config::get('socket::dataQueue');
 		$amqpChannel->queue_declare($amqpQueue, false, true, false, true);
 
-		$consumer = new AMQPConsumer($amqpConnection, $amqpChannel, $amqpQueue, $reactLoop, 0.1, 100); // Poll every 0.1 seconds, retrieve up to 100 queue entries.
+		$consumer = new AMQPConsumer($amqpConnection, $amqpChannel, $amqpQueue, $reactLoop, 0.1, 1); // Poll every 0.1 seconds. Pull every single element individually
 		$consumer->on('consume', [$wampHandler, 'onReceiveAmqp']);
 
 		// Set up the session synchronization AMQP consumer, with its own dedicated queue.
 		$syncQueue = \Config::get('socket::syncQueue');
 		$amqpChannel->queue_declare($syncQueue, false, true, false, true);
 
-		$consumer = new AMQPConsumer($amqpConnection, $amqpChannel, $syncQueue, $reactLoop, 0.1, 100); // Poll every 0.1 seconds, retrieve up to 100 queue entries.
+		$consumer = new AMQPConsumer($amqpConnection, $amqpChannel, $syncQueue, $reactLoop, 0.1, 1); // Poll every 0.1 seconds. Pull every single element individually
 		$consumer->on('consume', [$wampHandler, 'onReceiveSync']);
 
 		// Sets up a web socket listener on the specified port.
