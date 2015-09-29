@@ -64,6 +64,7 @@ class WampHandler implements WampServerInterface {
      */
     public function onError(ConnectionInterface $connection, \Exception $e)
     {
+print "***ERROR***: {$e->getMessage()}\n";
         // TODO
     }
 
@@ -81,6 +82,7 @@ class WampHandler implements WampServerInterface {
 
         // Fetch any cached posts, broadcast them to the newly-subscribed client.
         $sessionId = $connection->WAMP->sessionId; 
+print "Subscribed to topic. Topic: $topic, session: $sessionId\n";
         $this->transmitCache($sessionId, $topic->getId());
     }
 
@@ -179,6 +181,7 @@ class WampHandler implements WampServerInterface {
         }
         $sessionId = $message['sessionId'];
         $userId = $message['userId'];
+print "Received sync. Session: $sessionId, user: $userId\n";
 
         // Act on the received message.
         if ($message['type'] == 'add') {
@@ -204,7 +207,8 @@ class WampHandler implements WampServerInterface {
         $this->dataCache[] = array(
             'topicId' => $topicId,
             'data' => $data,
-            'userWhitelist' => $userWhitelist
+            'userWhitelist' => $userWhitelist,
+            'timestamp' => time()
         );
 print "Adding data for $topicId to cache. Count: " . count($this->dataCache) . "\n";
         // TODO Not a great solution to the data cache consuming all our memory...
@@ -238,6 +242,19 @@ print "Broadcasting to session: $sessionId.\n";
                         $topic->broadcast($cacheEntry['data'], array(), array($sessionId));
                     }
                 } 
+            }
+        }
+    }
+
+    /**
+     * Clears old data from the data cache.
+     */
+    public function clearCache() {
+        $time = time();
+        foreach($this->dataCache as $cacheKey => $cacheValue) {
+            if ($time - $cacheValue['timestamp'] > 5) {
+                unset($this->dataCache[$cacheKey]);
+print "Clearing data from cache. New length: " . count($this->dataCache) . "\n";
             }
         }
     }
