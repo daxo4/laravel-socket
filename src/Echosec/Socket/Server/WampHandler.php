@@ -64,7 +64,6 @@ class WampHandler implements WampServerInterface {
      */
     public function onError(ConnectionInterface $connection, \Exception $e)
     {
-print "***ERROR***: {$e->getMessage()}\n";
         // TODO
     }
 
@@ -82,7 +81,6 @@ print "***ERROR***: {$e->getMessage()}\n";
 
         // Fetch any cached posts, broadcast them to the newly-subscribed client.
         $sessionId = $connection->WAMP->sessionId; 
-print "Subscribed to topic. Topic: $topic, session: $sessionId\n";
         $this->transmitCache($sessionId, $topic->getId());
     }
 
@@ -181,7 +179,6 @@ print "Subscribed to topic. Topic: $topic, session: $sessionId\n";
         }
         $sessionId = $message['sessionId'];
         $userId = $message['userId'];
-print "Received sync. Session: $sessionId, user: $userId\n";
 
         // Act on the received message.
         if ($message['type'] == 'add') {
@@ -210,11 +207,9 @@ print "Received sync. Session: $sessionId, user: $userId\n";
             'userWhitelist' => $userWhitelist,
             'timestamp' => time()
         );
-print "Adding data for $topicId to cache. Count: " . count($this->dataCache) . "\n";
         // TODO Not a great solution to the data cache consuming all our memory...
         if (count($this->dataCache) > 100) {
             array_shift($this->dataCache);
-print "Shifted out data.\n";
         }
     }
 
@@ -225,18 +220,14 @@ print "Shifted out data.\n";
      * @param String|null $topicId The ID of the topic on which to broadcast. If null (default), attempts to transmit to all topics.
      */
     private function transmitCache($sessionId, $topicId = null) {
-print "Testing cache for transmission.\n";
         $userId = array_key_exists($sessionId, $this->userSessionMap) ? $this->userSessionMap[$sessionId] : null;
         foreach($this->dataCache as $cacheEntry) {
             // Check whether this cached message is destined for this topic.
             if (is_null($topicId) || $cacheEntry['topicId'] == $topicId) {
-print "Matching topic id : " . $topicId . "\n";
                 // If there are permissions on this entry, check that associated user (if there is one) is permitted to access the data.
                 if ((! is_null($userId) && in_array($userId, $cacheEntry['userWhitelist'])) || count($cacheEntry['userWhitelist']) == 0) {
-print "Passes authentication check.\n";
                     // Make sure the topic has been subscribed to before fetching it.
                     if (array_key_exists($topicId, $this->subscribedTopics)) {
-print "Broadcasting to session: $sessionId.\n";
                         $topic = $this->subscribedTopics[$topicId];
                         // Broadcast to this specific session only, so other clients don't get duplicate messages when others sync.
                         $topic->broadcast($cacheEntry['data'], array(), array($sessionId));
@@ -254,7 +245,6 @@ print "Broadcasting to session: $sessionId.\n";
         foreach($this->dataCache as $cacheKey => $cacheValue) {
             if ($time - $cacheValue['timestamp'] > 5) {
                 unset($this->dataCache[$cacheKey]);
-print "Clearing data from cache. New length: " . count($this->dataCache) . "\n";
             }
         }
     }
